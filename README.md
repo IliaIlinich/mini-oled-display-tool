@@ -34,5 +34,7 @@
 * This project can be compiled with modern GCC, but it does rely on C++11/C++14 standard features, also due to legacy Arduino wrapper libraries handle different types of data, you must compile with the
 * `-fpermissive` flag to downgrade type-conflict errors to warnings.
 * `g++ mini_oled_info.cpp -o oled_monitor -std=c++14 -fpermissive -lArduiPi_OLED -li2c`
-Launching the Monitor
+
+**Launching the Monitor**
+
 * `./oled_monitor`
