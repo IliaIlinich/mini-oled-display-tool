@@ -13,6 +13,7 @@ typedef uint8_t boolean;
 #include <string>
 #include <cstring>
 #include <cstdio>
+#include <csignal>
 
 #include <Adafruit_GFX.h>
 #include <ArduiPi_OLED.h>
@@ -22,7 +23,14 @@ ArduiPi_OLED display;
 
 using namespace std;
 
-string getHostname() {
+// Global flag for graceful shutdown
+static volatile sig_atomic_t keepRunning = 1;
+
+static void signalHandler(int signum) {
+    keepRunning = 0;
+}
+
+static string getHostname() {
     char hostname[256];
     if (gethostname(hostname, sizeof(hostname)) == 0) {
         return string(hostname);
@@ -30,7 +38,7 @@ string getHostname() {
     return "Unknown";
 }
 
-string getIPAddress() {
+static string getIPAddress() {
     struct ifaddrs* interfaces = nullptr;
     struct ifaddrs* temp_addr = nullptr;
     string ipAddress = "No IP";
@@ -40,7 +48,8 @@ string getIPAddress() {
         while (temp_addr != nullptr) {
             if (temp_addr->ifa_addr != nullptr && temp_addr->ifa_addr->sa_family == AF_INET) {
                 if (strcmp(temp_addr->ifa_name, "lo") != 0) {
-                    ipAddress = inet_ntoa(((struct sockaddr_in*)temp_addr->ifa_addr)->sin_addr);
+                    // C++ prefers reinterpret_cast for sockaddr structs
+                    ipAddress = inet_ntoa(reinterpret_cast<struct sockaddr_in*>(temp_addr->ifa_addr)->sin_addr);
                     break;
                 }
             }
@@ -51,13 +60,13 @@ string getIPAddress() {
     return ipAddress;
 }
 
-string getUptime() {
+static string getUptime() {
     struct sysinfo info;
     if (sysinfo(&info) == 0) {
-        long uptime = info.uptime;
-        int days = uptime / 86400;
-        int hours = (uptime % 86400) / 3600;
-        int minutes = (uptime % 3600) / 60;
+        const long uptime = info.uptime;
+        const int days = uptime / 86400;
+        const int hours = (uptime % 86400) / 3600;
+        const int minutes = (uptime % 3600) / 60;
 
         char buffer[32];
         snprintf(buffer, sizeof(buffer), "%dd %02dh %02dm", days, hours, minutes);
@@ -66,18 +75,19 @@ string getUptime() {
     return "Unknown";
 }
 
-string getDateAndTime() {
+static string getDateAndTime() {
     try {
-        auto now = chrono::system_clock::now();
-        time_t now_c = chrono::system_clock::to_time_t(now);
+        const auto now = chrono::system_clock::now();
+        const time_t now_c = chrono::system_clock::to_time_t(now);
 
-        tm* local_time = localtime(&now_c);
-        if (local_time == nullptr) {
+        struct tm local_time;
+        // localtime_r is POSIX standard and thread-safe
+        if (localtime_r(&now_c, &local_time) == nullptr) {
             return "Unknown";
         }
 
         stringstream ss;
-        ss << put_time(local_time, "%Y-%m-%d %H:%M:%S");
+        ss << put_time(&local_time, "%Y-%m-%d %H:%M:%S");
         return ss.str();
     }
     catch (...) {
@@ -85,14 +95,12 @@ string getDateAndTime() {
     }
 }
 
-void updateDisplay() {
-    // Fetch current system data
-    string hostname = getHostname();
-    string ip = getIPAddress();
-    string uptime = getUptime();
-    string dateAndTime = getDateAndTime();
+static void updateDisplay(const string& hostname) {
+    // Fetch dynamic system data
+    const string ip = getIPAddress();
+    const string uptime = getUptime();
+    const string dateAndTime = getDateAndTime();
 
-    // Clear previous frame
     display.clearDisplay();
 
     // Render the Top Bar
@@ -100,43 +108,52 @@ void updateDisplay() {
     display.setTextSize(1);
     display.setCursor(0, 0);
 
-    // A standard 128px wide OLED fits 21 characters at text size 1.
     char titleBar[22];
     snprintf(titleBar, sizeof(titleBar), " %-19s ", hostname.c_str());
     display.print(titleBar);
 
-    // 4. Draw the Main Body
+    // Render the Main Body
     display.setTextColor(WHITE);
 
-    // Print IP Address
     display.setCursor(0, 16);
     display.print("IP: ");
     display.print(ip.c_str());
 
-    // Print Uptime
     display.setCursor(0, 26);
     display.print("Up: ");
     display.print(uptime.c_str());
 
-    // Print Date and Time
     display.setCursor(0, 36);
     display.print(dateAndTime.c_str());
 
-    // Push the buffer to the OLED screen
     display.display();
 }
 
 int main(int argc, char** argv) {
-    if (!display.init(OLED_I2C_RESET, 3)) {
+    // Register signal handlers for clean exit
+    signal(SIGINT, signalHandler);
+    signal(SIGTERM, signalHandler);
+
+    // Use the named constant instead of magic number '3'
+    if (!display.init(OLED_I2C_RESET, OLED_ADAFRUIT_I2C_128x64)) {
+        cerr << "Failed to initialize OLED display." << endl;
         return 1;
     }
 
     display.begin();
 
-    while (true) {
-        updateDisplay();
-        usleep(2000000); // Refresh every 2 seconds
+    // Cache the hostname once
+    const string staticHostname = getHostname();
+
+    while (keepRunning) {
+        updateDisplay(staticHostname);
+        usleep(2000000); 
     }
+
+    // Clean up the display before exiting so it doesn't freeze on the last frame
+    display.clearDisplay();
+    display.display();
+    display.close();
 
     return 0;
 }
