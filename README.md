@@ -37,4 +37,4 @@
 
 **Launching the Monitor**
 
-* For launching options and help please type sudo ./oled_screen -h
+* For launching options and help please type `sudo ./oled_screen -h`
