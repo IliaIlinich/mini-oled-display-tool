@@ -37,14 +37,14 @@ Hardware Setup
 Verify that the OLED screen is detected on the I2C bus (the default address for 128x64 displays is usually 0x3c):
 Bash
 
-i2cdetect -y 1
+    i2cdetect -y 1
 
 Compilation
 
 This project can be compiled with modern GCC, but it relies on C++11/C++14 standard features. Because legacy Arduino wrapper libraries handle different types of data differently, you must compile with the -fpermissive flag to downgrade type-conflict errors to warnings.
 Bash
 
-g++ mini_oled_info.cpp -o oled_monitor -std=c++14 -fpermissive -lArduiPi_OLED -li2c
+    g++ mini_oled_info.cpp -o oled_monitor -std=c++14 -fpermissive -lArduiPi_OLED -li2c
 
 Launching the Monitor
 
@@ -53,14 +53,14 @@ To populate the screen, launch the application and provide the data as arguments
 View all options and help:
 Bash
 
-sudo ./oled_monitor -h
+    sudo ./oled_monitor -h
 
 Example usage with data:
 Bash
 
-sudo ./oled_monitor -n "RaspberryPi" -i "192.168.1.50" -u "2d 4h 12m" -d "2026-08-15 14:30:00"
+    sudo ./oled_monitor -n "RaspberryPi" -i "192.168.1.50" -u "2d 4h 12m" -d "2026-08-15 14:30:00"
 
 Clear the screen:
 Bash
 
-sudo ./oled_monitor --clear
+    sudo ./oled_monitor --clear
