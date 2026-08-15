@@ -37,4 +37,4 @@
 
 **Launching the Monitor**
 
-* `./oled_monitor`
+* For launching options and help please type `sudo ./oled_screen -h`
