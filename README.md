@@ -1,6 +1,3 @@
-Here is the updated README.md. I have rewritten the introduction to clarify that it now takes data via command-line arguments (which is great for bash scripts), added the new -c clear flag to the features list, formatted the terminal commands into proper code blocks, and unified the executable name (the previous version compiled it as oled_monitor but tried to launch it as oled_screen).
-mini-oled-screen
-
 A command-line utility that allows you to render text and system information on an I2C mini OLED screen. This tool takes data via command-line arguments, making it highly customizable and perfectly suited for integration with bash scripts, automation tools, or cron jobs.
 Features
 
