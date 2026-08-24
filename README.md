@@ -11,6 +11,8 @@ Currently, the tool allows you to pass and display the following data:
 
     Date and Time (-d or --date)
 
+    Total and Free Space (-s or --space)
+
     Clear Screen (-c or --clear) to wipe the display buffer and turn off active pixels.
 
 Prerequisites
