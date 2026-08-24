@@ -55,7 +55,7 @@ Bash
 Example usage with data:
 Bash
 
-    sudo ./oled_monitor -n "RaspberryPi" -i "192.168.1.50" -u "2d 4h 12m" -d "2026-08-15 14:30:00"
+    sudo ./oled_monitor -n "RaspberryPi" -i "192.168.1.50"
 
 Clear the screen:
 Bash
