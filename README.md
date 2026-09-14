@@ -1,73 +1,55 @@
-A command-line utility that allows you to render text and system information on an I2C mini OLED screen. This tool takes data via command-line arguments, making it highly customizable and perfectly suited for integration with bash scripts, automation tools, or cron jobs.
-Features
+## Installation & Build Instructions
 
-Currently, the tool allows you to pass and display the following data:
+This project requires the `ArduiPi_OLED` library to interface with the display. If you are running a modern 64-bit Raspberry Pi OS, the default library configuration will fail to compile. Follow the steps below to patch the library and build this tool.
 
-    Device Name / Title (-n or --name)
+### 1. Install Prerequisites
+First, install the required I2C development library:
+```bash
+sudo apt-get update
+sudo apt-get install libi2c-dev
+```
+### 2. Download and Configure ArduiPi_OLED
+Clone the library and run the automated setup script. When prompted, select your platform (e.g., 1 for Raspberry Pi).
+```bash
+git clone [https://github.com/hallard/ArduiPi_OLED.git](https://github.com/hallard/ArduiPi_OLED.git)
+cd ArduiPi_OLED
+sudo ./autogen.sh
+```
+### 3. Patch the Makefile (For 64-bit OS)
+The default Makefile includes legacy 32-bit hardware floating-point flags that will cause compilation errors (unrecognized command-line option) on modern 64-bit systems.
+Open the Makefile:
+```Bash
+nano Makefile
+```
+Find the CCFLAGS line (around line 30) that looks like this:
+CCFLAGS=-Wall -fPIC -fno-rtti -Ofast -mfpu=vfp -mfloat-abi=hard -march=armv6zk -mtune=arm1176jzf-s
 
-    IP Address (-i or --ip)
+Delete the architecture-specific flags so it reads exactly like this:
+CCFLAGS=-Wall -fPIC -fno-rtti -Ofast
 
-    Uptime (-u or --uptime)
+Save and exit (Ctrl+O, Enter, Ctrl+X).
+### 4. Build and Install the Library
+Compile the shared library and update your system's linker cache:
+```Bash
+sudo make
+sudo ldconfig
+```
+(Optional) If you intend to build a static executable later, you must manually bundle the compiled object files into a static archive:
+```Bash
+sudo ar rcs /usr/local/lib/libArduiPi_OLED.a *.o
+```
+### 5. Compile the Monitor Tool
+Navigate back to your project directory. You can choose to build the binary dynamically (smaller file, relies on system libraries) or statically (larger file, highly portable).
 
-    Date and Time (-d or --date)
+Option A: Dynamic Linking (Default)
+```Bash
+g++ mini_oled_info.cpp -o oled_monitor -std=c++14 -fpermissive -L/usr/local/lib -lArduiPi_OLED -li2c
+```
 
-    Total and Free Space (-s or --space)
+Option B: Static Linking (Standalone executable)
+Requires the ar rcs command from Step 4 to be completed first.
+```Bash
+g++ mini_oled_info.cpp -o oled_monitor -std=c++14 -fpermissive -static -L/usr/local/lib -lArduiPi_OLED -li2c
+```
 
-    Clear Screen (-c or --clear) to wipe the display buffer and turn off active pixels.
-
-Prerequisites
-
-(Tested on Raspberry Pi. Please adapt the commands to the system you are using)
-
-    Enable I2C
-    Run sudo raspi-config, navigate to Interface Options, and enable I2C.
-
-    Install Required System Packages
-    Bash
-
-    sudo apt-get update
-    sudo apt-get install build-essential i2c-tools
-
-    Install the ArduiPi_OLED Library
-    This project requires the ArduiPi_OLED library to be compiled and installed on your system. Ensure that header files like ArduiPi_OLED.h and Adafruit_GFX.h are located in /usr/local/include/ and the shared objects are in /usr/local/lib/.
-    First please install the library.
-    git clone https://github.com/hallard/ArduiPi_OLED.git
-    Then go through the automated setup.
-    cd ArduiPi_OLED
-    sudo ./autogen.sh
-    And then compile and install
-    sudo make
-    sudo make install
-
-Hardware Setup
-
-Verify that the OLED screen is detected on the I2C bus (the default address for 128x64 displays is usually 0x3c):
-Bash
-
-    i2cdetect -y 1
-
-Compilation
-
-This project can be compiled with modern GCC, but it relies on C++11/C++14 standard features. Because legacy Arduino wrapper libraries handle different types of data differently, you must compile with the -fpermissive flag to downgrade type-conflict errors to warnings.
-Bash
-
-    g++ mini_oled_info.cpp -o oled_monitor -std=c++14 -fpermissive -I. -lArduiPi_OLED -li2c
-
-Launching the Monitor
-
-To populate the screen, launch the application and provide the data as arguments.
-
-View all options and help:
-Bash
-
-    sudo ./oled_monitor -h
-
-Example usage with data:
-Bash
-
-    sudo ./oled_monitor -n "RaspberryPi" -i "192.168.1.50"
-
-Clear the screen:
-Bash
-
-    sudo ./oled_monitor --clear
+Hopefully this will help somebody not to get stuck with figuring out why it doesn't compile for hours.
