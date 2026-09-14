@@ -30,6 +30,14 @@ Prerequisites
 
     Install the ArduiPi_OLED Library
     This project requires the ArduiPi_OLED library to be compiled and installed on your system. Ensure that header files like ArduiPi_OLED.h and Adafruit_GFX.h are located in /usr/local/include/ and the shared objects are in /usr/local/lib/.
+    First please install the library.
+    git clone https://github.com/hallard/ArduiPi_OLED.git
+    Then go through the automated setup.
+    cd ArduiPi_OLED
+    sudo ./autogen.sh
+    And then compile and install
+    sudo make
+    sudo make install
 
 Hardware Setup
 
@@ -43,7 +51,11 @@ Compilation
 This project can be compiled with modern GCC, but it relies on C++11/C++14 standard features. Because legacy Arduino wrapper libraries handle different types of data differently, you must compile with the -fpermissive flag to downgrade type-conflict errors to warnings.
 Bash
 
-    g++ mini_oled_info.cpp -o oled_monitor -std=c++14 -fpermissive -lArduiPi_OLED -li2c
+    Please, when compiling the C++ file, ensure it is in the same folder as the Adafruit_GFX.h in case of a problem with the library not being in /usr/include.
+    g++ mini_oled_info.cpp -o oled_monitor -std=c++14 -fpermissive -I. -lArduiPi_OLED -li2c
+    ^
+    |
+    This will generate a non dynamic executable, so you wouldn't need to install any of the services on another machine and can just download the binary.
 
 Launching the Monitor
 
