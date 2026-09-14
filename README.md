@@ -53,3 +53,12 @@ g++ mini_oled_info.cpp -o oled_monitor -std=c++14 -fpermissive -static -L/usr/lo
 ```
 
 Hopefully this will help somebody not to get stuck with figuring out why it doesn't compile for hours.
+### Example of usage
+Help
+```Bash
+./oled_monitor -h
+```
+Command example
+```Bash
+sudo ./oled_monitor -n "name" -i "192.168.0.1" -u -d -s
+```
