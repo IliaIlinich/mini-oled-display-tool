@@ -21,13 +21,10 @@ Open the Makefile:
 ```Bash
 nano Makefile
 ```
-Find the CCFLAGS line (around line 30) that looks like this:
-CCFLAGS=-Wall -fPIC -fno-rtti -Ofast -mfpu=vfp -mfloat-abi=hard -march=armv6zk -mtune=arm1176jzf-s
-
-Delete the architecture-specific flags so it reads exactly like this:
+Find the CCFLAGS line (around line 30).
+Delete the architecture-specific flags so it reads like this:
 CCFLAGS=-Wall -fPIC -fno-rtti -Ofast
 
-Save and exit (Ctrl+O, Enter, Ctrl+X).
 ### 4. Build and Install the Library
 Compile the shared library and update your system's linker cache:
 ```Bash
