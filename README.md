@@ -51,11 +51,7 @@ Compilation
 This project can be compiled with modern GCC, but it relies on C++11/C++14 standard features. Because legacy Arduino wrapper libraries handle different types of data differently, you must compile with the -fpermissive flag to downgrade type-conflict errors to warnings.
 Bash
 
-    Please, when compiling the C++ file, ensure it is in the same folder as the Adafruit_GFX.h in case of a problem with the library not being in /usr/include.
     g++ mini_oled_info.cpp -o oled_monitor -std=c++14 -fpermissive -I. -lArduiPi_OLED -li2c
-    ^
-    |
-    This will generate a non dynamic executable, so you wouldn't need to install any of the services on another machine and can just download the binary.
 
 Launching the Monitor
 
