@@ -140,7 +140,3 @@ Run the tool with `sudo`, or add your user to the `i2c` group and log out:
 ```bash
 sudo usermod -a -G i2c $USER
 ```
-
-## License
-
-Add your license here.
